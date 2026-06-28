@@ -1,0 +1,27 @@
+{
+  "expo": {
+    "name": "GigLift",
+    "slug": "giglift",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "giglift",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.skaal.giglift",
+      "usesAppleSignIn": true
+    },
+    "android": {
+      "package": "com.skaal.giglift"
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static"
+    },
+    "plugins": ["expo-router", "expo-secure-store", "expo-status-bar", "expo-apple-authentication"],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
