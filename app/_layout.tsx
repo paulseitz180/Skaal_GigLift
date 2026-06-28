@@ -8,8 +8,9 @@ export default function RootLayout() {
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="profile-setup" options={{ title: 'Artist Profile' }} />
-        <Stack.Screen name="voice-input" options={{ title: 'VoiceInput' }} />
+        <Stack.Screen name="voice-input" options={{ headerShown: false }} />
         <Stack.Screen name="review" options={{ title: 'Review' }} />
+        <Stack.Screen name="campaign-loading" options={{ headerShown: false }} />
         <Stack.Screen name="campaign" options={{ title: 'Campaign' }} />
         <Stack.Screen name="timeline" options={{ title: 'Timeline' }} />
       </Stack>

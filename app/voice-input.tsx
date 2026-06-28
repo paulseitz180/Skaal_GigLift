@@ -1,5 +1,5 @@
-import { PlaceholderScreen } from '@/components/PlaceholderScreen';
+import { VoiceRecorder } from '@/features/voice/components/VoiceRecorder';
 
 export default function VoiceInputScreen() {
-  return <PlaceholderScreen name="VoiceInput" />;
+  return <VoiceRecorder />;
 }

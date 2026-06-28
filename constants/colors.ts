@@ -21,6 +21,10 @@ export const colors = {
   disabled: '#D1D5DB',
   danger: '#DC2626',
   transparent: 'transparent',
+
+  // Status accents
+  info: '#2563EB',
+  success: '#16A34A',
 } as const;
 
 export type ColorToken = keyof typeof colors;
