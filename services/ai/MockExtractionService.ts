@@ -1,17 +1,6 @@
+import { MOCK_SHOW } from '@/mock/show';
 import type { ExtractionService } from '@/services/ai/ExtractionService';
 import type { Show } from '@/types/show';
-
-const MOCK_SHOW: Show = {
-  venue: 'Bluebird Cafe',
-  city: 'Nashville',
-  date: 'August 15, 2026',
-  time: '8:00 PM',
-  ticketPrice: 20,
-  ticketLink: 'https://tickets.example.com',
-  openingActs: ['The Skyline Quartet'],
-  genre: 'Jazz',
-  notes: 'Acoustic evening performance.',
-};
 
 /**
  * Prototype extraction service. Ignores the transcript and always returns the

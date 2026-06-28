@@ -1,16 +1,18 @@
+import { useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
+import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Text } from '@/components/ui/Text';
 import { colors } from '@/constants/colors';
 import { spacing } from '@/constants/spacing';
 import { ReviewItemCard, type ItemStatus } from '@/features/campaign/components/ReviewItemCard';
+import { FALLBACK_SHOW } from '@/mock/show';
 import { MockCampaignService } from '@/services/campaign/MockCampaignService';
 import { useCampaignStore } from '@/stores/campaignStore';
 import { useShowStore } from '@/stores/showStore';
 import type { Campaign } from '@/types/campaign';
-import type { Show } from '@/types/show';
 
 type TabKey = 'emails' | 'social' | 'press' | 'timeline';
 
@@ -21,19 +23,6 @@ const TABS: { key: TabKey; label: string }[] = [
   { key: 'timeline', label: 'Timeline' },
 ];
 
-/** Used only if the screen is reached without a campaign or show available. */
-const FALLBACK_SHOW: Show = {
-  venue: 'Your Venue',
-  city: 'Your City',
-  date: 'your show date',
-  time: '8:00 PM',
-  ticketPrice: 0,
-  ticketLink: 'https://tickets.example.com',
-  openingActs: [],
-  genre: '',
-  notes: '',
-};
-
 const campaignService = new MockCampaignService();
 
 function cloneCampaign(campaign: Campaign): Campaign {
@@ -41,6 +30,7 @@ function cloneCampaign(campaign: Campaign): Campaign {
 }
 
 export default function CampaignScreen() {
+  const router = useRouter();
   const storeCampaign = useCampaignStore((state) => state.campaign);
   const currentShow = useShowStore((state) => state.currentShow);
 
@@ -303,6 +293,13 @@ export default function CampaignScreen() {
               );
             })
           : null}
+
+        <Button
+          label="View Timeline"
+          variant="primary"
+          style={styles.timelineButton}
+          onPress={() => router.push('/timeline')}
+        />
       </ScrollView>
     </View>
   );
@@ -334,6 +331,9 @@ const styles = StyleSheet.create({
   content: {
     padding: spacing.lg,
     gap: spacing.md,
+  },
+  timelineButton: {
+    marginTop: spacing.sm,
   },
   emphasis: {
     fontWeight: '600',

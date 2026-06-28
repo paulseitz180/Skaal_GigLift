@@ -8,10 +8,8 @@ import { colors } from '@/constants/colors';
 import { radius } from '@/constants/radius';
 import { shadows } from '@/constants/shadows';
 import { spacing } from '@/constants/spacing';
+import { PLACEHOLDER_FAN_COUNT } from '@/mock/fans';
 import { getCurrentArtist } from '@/services/artistService';
-
-// Fan counting is not implemented yet; show a placeholder value.
-const PLACEHOLDER_FAN_COUNT = 0;
 
 export default function HomeDashboardScreen() {
   const router = useRouter();

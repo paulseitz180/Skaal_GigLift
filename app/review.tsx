@@ -1,3 +1,4 @@
+import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 
@@ -71,6 +72,7 @@ function toFields(show: Show): EditableField[] {
 }
 
 export default function ReviewScreen() {
+  const router = useRouter();
   const currentShow = useShowStore((state) => state.currentShow);
   const updateShow = useShowStore((state) => state.updateShow);
 
@@ -110,7 +112,11 @@ export default function ReviewScreen() {
       )}
 
       <View style={styles.actions}>
-        <Button label="Looks Good" variant="primary" />
+        <Button
+          label="Looks Good"
+          variant="primary"
+          onPress={() => router.push('/campaign-loading')}
+        />
         <Button label="Edit All" variant="ghost" />
       </View>
     </ScrollView>

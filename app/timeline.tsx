@@ -1,3 +1,4 @@
+import { useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
@@ -7,13 +8,16 @@ import { Text } from '@/components/ui/Text';
 import { colors } from '@/constants/colors';
 import { radius } from '@/constants/radius';
 import { spacing } from '@/constants/spacing';
+import { FALLBACK_SHOW } from '@/mock/show';
+import {
+  TIMELINE_REFERENCE_DATE,
+  TIMELINE_STATUS_SEQUENCE,
+  type TimelineStatus,
+} from '@/mock/timeline';
 import { MockCampaignService } from '@/services/campaign/MockCampaignService';
 import { useCampaignStore } from '@/stores/campaignStore';
 import { useShowStore } from '@/stores/showStore';
 import type { Campaign } from '@/types/campaign';
-import type { Show } from '@/types/show';
-
-type TimelineStatus = 'scheduled' | 'approved' | 'skipped' | 'completed';
 
 type TimelineEntry = {
   id: string;
@@ -37,42 +41,18 @@ const STATUS_COLOR: Record<TimelineStatus, string> = {
   completed: colors.primary,
 };
 
-/** Mocked status assignment so every badge color is represented. */
-const STATUS_SEQUENCE: TimelineStatus[] = [
-  'completed',
-  'completed',
-  'approved',
-  'skipped',
-  'scheduled',
-];
-
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-/** Fixed reference show date used purely to render mocked dates (no scheduling). */
-const REFERENCE_SHOW_DATE = new Date(2026, 7, 15);
-
-/** Used only if the screen is reached without a campaign or show available. */
-const FALLBACK_SHOW: Show = {
-  venue: 'Your Venue',
-  city: 'Your City',
-  date: 'your show date',
-  time: '8:00 PM',
-  ticketPrice: 0,
-  ticketLink: 'https://tickets.example.com',
-  openingActs: [],
-  genre: '',
-  notes: '',
-};
 
 const campaignService = new MockCampaignService();
 
 function formatMockDate(daysBeforeShow: number): string {
-  const date = new Date(REFERENCE_SHOW_DATE);
+  const date = new Date(TIMELINE_REFERENCE_DATE);
   date.setDate(date.getDate() - daysBeforeShow);
   return `${MONTHS[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
 }
 
 export default function TimelineScreen() {
+  const router = useRouter();
   const storeCampaign = useCampaignStore((state) => state.campaign);
   const currentShow = useShowStore((state) => state.currentShow);
 
@@ -103,7 +83,7 @@ export default function TimelineScreen() {
       title: item.title,
       date: formatMockDate(item.daysBeforeShow),
       detail: item.detail,
-      status: STATUS_SEQUENCE[index % STATUS_SEQUENCE.length] ?? 'scheduled',
+      status: TIMELINE_STATUS_SEQUENCE[index % TIMELINE_STATUS_SEQUENCE.length] ?? 'scheduled',
     }));
   }, [campaign]);
 
@@ -145,6 +125,13 @@ export default function TimelineScreen() {
             </Card>
           </Pressable>
         ))}
+
+        <Button
+          label="Return Home"
+          variant="primary"
+          style={styles.returnHomeButton}
+          onPress={() => router.replace('/')}
+        />
       </ScrollView>
 
       <Modal
@@ -196,6 +183,9 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: spacing.lg,
+  },
+  returnHomeButton: {
+    marginTop: spacing.md,
   },
   row: {
     flexDirection: 'row',

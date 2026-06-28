@@ -6,12 +6,12 @@ import { Button } from '@/components/ui/Button';
 import { Text } from '@/components/ui/Text';
 import { colors } from '@/constants/colors';
 import { spacing } from '@/constants/spacing';
+import { FALLBACK_SHOW } from '@/mock/show';
 import { MockCampaignService } from '@/services/campaign/MockCampaignService';
 import type { CampaignService } from '@/services/campaign/CampaignService';
 import { useCampaignStore } from '@/stores/campaignStore';
 import { useShowStore } from '@/stores/showStore';
 import type { Campaign } from '@/types/campaign';
-import type { Show } from '@/types/show';
 
 const MESSAGES = [
   'Writing your emails...',
@@ -25,19 +25,6 @@ const MESSAGE_INTERVAL_MS = 2000;
 const READY_AFTER_MS = 8000;
 
 const campaignService: CampaignService = new MockCampaignService();
-
-/** Used only if the user reaches this screen without a show in the store. */
-const FALLBACK_SHOW: Show = {
-  venue: 'Your Venue',
-  city: 'Your City',
-  date: 'your show date',
-  time: '8:00 PM',
-  ticketPrice: 0,
-  ticketLink: 'https://tickets.example.com',
-  openingActs: [],
-  genre: '',
-  notes: '',
-};
 
 export default function CampaignLoadingScreen() {
   const router = useRouter();
