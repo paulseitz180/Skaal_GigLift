@@ -1,18 +1,21 @@
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
+import { MetricCard } from '@/components/MetricCard';
 import { Button } from '@/components/ui/Button';
+import { MicIcon } from '@/components/ui/MicIcon';
 import { Text } from '@/components/ui/Text';
 import { colors } from '@/constants/colors';
-import { radius } from '@/constants/radius';
 import { shadows } from '@/constants/shadows';
 import { spacing } from '@/constants/spacing';
-import { PLACEHOLDER_FAN_COUNT } from '@/mock/fans';
 import { getCurrentArtist } from '@/services/artistService';
+import { DemoDataService } from '@/services/demo/DemoDataService';
+import { useShowStore } from '@/stores/showStore';
 
 export default function HomeDashboardScreen() {
   const router = useRouter();
+  const setCurrentShow = useShowStore((state) => state.setCurrentShow);
   const [artistName, setArtistName] = useState<string | null>(null);
 
   useEffect(() => {
@@ -38,32 +41,37 @@ export default function HomeDashboardScreen() {
   const greetingName = artistName ?? 'there';
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <View style={styles.greetingBlock}>
-          <Text variant="heading">Hey {greetingName}</Text>
-          <Text variant="body" color={colors.muted}>
-            {"What's your next show?"}
-          </Text>
-        </View>
-
-        <View style={styles.fanBadge}>
-          <Text variant="caption" color={colors.onPrimary}>
-            {PLACEHOLDER_FAN_COUNT} fans
-          </Text>
-        </View>
+    <ScrollView
+      style={styles.screen}
+      contentContainerStyle={styles.content}
+      showsVerticalScrollIndicator={false}
+    >
+      <View style={styles.greetingBlock}>
+        <Text variant="heading">Hey {greetingName}</Text>
+        <Text variant="body" color={colors.muted}>
+          {"Here's how your promotion is going."}
+        </Text>
       </View>
 
-      <View style={styles.center}>
+      <View style={styles.metricsGrid}>
+        {DemoDataService.dashboardMetrics.map((metric) => (
+          <MetricCard
+            key={metric.key}
+            label={metric.label}
+            value={metric.value}
+            wide={metric.wide}
+          />
+        ))}
+      </View>
+
+      <View style={styles.cta}>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Tell GigLift about your next show"
           onPress={() => router.push('/voice-input')}
           style={({ pressed }) => [styles.mic, pressed && styles.micPressed]}
         >
-          <View style={styles.micBody} />
-          <View style={styles.micStem} />
-          <View style={styles.micBase} />
+          <MicIcon />
         </Pressable>
 
         <Text variant="body" color={colors.muted} style={styles.caption}>
@@ -74,41 +82,40 @@ export default function HomeDashboardScreen() {
       <Button
         label="Or Enter Show Manually"
         variant="ghost"
-        onPress={() => router.push('/review')}
+        onPress={() => {
+          // Seed a draft show so the Review screen opens populated and editable.
+          setCurrentShow(DemoDataService.primaryShow);
+          router.push('/review');
+        }}
       />
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  content: {
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.lg,
     paddingBottom: spacing.xl,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
+    gap: spacing.lg,
   },
   greetingBlock: {
-    flex: 1,
     gap: spacing.xs,
   },
-  fanBadge: {
-    marginLeft: spacing.md,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    borderRadius: radius.full,
-    backgroundColor: colors.primary,
+  metricsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    rowGap: spacing.md,
   },
-  center: {
-    flex: 1,
+  cta: {
     alignItems: 'center',
-    justifyContent: 'center',
     gap: spacing.lg,
+    paddingVertical: spacing.lg,
   },
   mic: {
     width: 160,
@@ -121,25 +128,6 @@ const styles = StyleSheet.create({
   },
   micPressed: {
     opacity: 0.9,
-  },
-  micBody: {
-    width: 30,
-    height: 48,
-    borderRadius: 15,
-    backgroundColor: colors.onPrimary,
-  },
-  micStem: {
-    width: 4,
-    height: 14,
-    marginTop: 4,
-    backgroundColor: colors.onPrimary,
-  },
-  micBase: {
-    width: 34,
-    height: 4,
-    marginTop: 2,
-    borderRadius: 2,
-    backgroundColor: colors.onPrimary,
   },
   caption: {
     textAlign: 'center',

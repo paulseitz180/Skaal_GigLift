@@ -1,4 +1,4 @@
-import { authService } from '@/services/auth';
+import { authService } from '@/services/authService';
 import { useAuthStore } from '@/stores/authStore';
 
 /**

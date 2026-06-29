@@ -6,8 +6,7 @@ import { Text } from '@/components/ui/Text';
 import { colors } from '@/constants/colors';
 import { radius } from '@/constants/radius';
 import { spacing } from '@/constants/spacing';
-
-export type ItemStatus = 'pending' | 'approved' | 'skipped';
+import type { ItemStatus } from '@/types/campaign';
 
 type ReviewItemCardProps = {
   title: string;

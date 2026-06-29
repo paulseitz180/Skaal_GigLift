@@ -9,8 +9,6 @@ type ShowState = {
   setCurrentShow: (show: Show) => void;
   /** Merge partial changes into the current show (no-op if none is set). */
   updateShow: (changes: Partial<Show>) => void;
-  /** Clear the current show. */
-  clearShow: () => void;
 };
 
 export const useShowStore = create<ShowState>((set) => ({
@@ -20,5 +18,4 @@ export const useShowStore = create<ShowState>((set) => ({
     set((state) =>
       state.currentShow ? { currentShow: { ...state.currentShow, ...changes } } : state,
     ),
-  clearShow: () => set({ currentShow: null }),
 }));

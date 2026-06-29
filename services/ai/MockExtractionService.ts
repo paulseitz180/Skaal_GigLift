@@ -1,18 +1,18 @@
-import { MOCK_SHOW } from '@/mock/show';
+import { DemoDataService } from '@/services/demo/DemoDataService';
 import type { ExtractionService } from '@/services/ai/ExtractionService';
 import type { Show } from '@/types/show';
 
 /**
  * Prototype extraction service. Ignores the transcript and always returns the
- * same fixed Show. No networking, API keys, or backend are involved.
+ * shared demo Show. No networking, API keys, or backend are involved.
  *
  * Future production work will replace this with a Claude-backed implementation.
  */
 export class MockExtractionService implements ExtractionService {
   extract(_transcript: string): Promise<Show> {
     return Promise.resolve({
-      ...MOCK_SHOW,
-      openingActs: [...MOCK_SHOW.openingActs],
+      ...DemoDataService.primaryShow,
+      openingActs: [...DemoDataService.primaryShow.openingActs],
     });
   }
 }

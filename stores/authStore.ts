@@ -12,8 +12,6 @@ type AuthState = {
   status: AuthStatus;
   /** Replace the session (and derived user/status). Pass null to sign out. */
   setSession: (session: Session | null) => void;
-  /** Reset to the signed-out state. */
-  clear: () => void;
 };
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -26,5 +24,4 @@ export const useAuthStore = create<AuthState>((set) => ({
       user: session?.user ?? null,
       status: session ? 'authenticated' : 'unauthenticated',
     }),
-  clear: () => set({ session: null, user: null, status: 'unauthenticated' }),
 }));

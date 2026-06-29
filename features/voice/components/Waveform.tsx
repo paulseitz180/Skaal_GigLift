@@ -10,6 +10,7 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { colors } from '@/constants/colors';
+import { spacing } from '@/constants/spacing';
 
 const BARS = [
   { id: 'bar-1', delay: 0 },
@@ -66,7 +67,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     height: 64,
-    gap: 8,
+    gap: spacing.sm,
   },
   bar: {
     width: 6,

@@ -4,15 +4,24 @@ import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { Text } from '@/components/ui/Text';
 import { colors } from '@/constants/colors';
 import { spacing } from '@/constants/spacing';
-import { ReviewItemCard, type ItemStatus } from '@/features/campaign/components/ReviewItemCard';
-import { FALLBACK_SHOW } from '@/mock/show';
+import { ReviewItemCard } from '@/features/campaign/components/ReviewItemCard';
 import { MockCampaignService } from '@/services/campaign/MockCampaignService';
+import { DemoDataService } from '@/services/demo/DemoDataService';
 import { useCampaignStore } from '@/stores/campaignStore';
 import { useShowStore } from '@/stores/showStore';
-import type { Campaign } from '@/types/campaign';
+import type { Campaign, ItemStatus } from '@/types/campaign';
+import {
+  cloneCampaign,
+  summarizeStatuses,
+  updateEmailField,
+  updatePressReleaseField,
+  updateSocialField,
+  updateTimelineItemField,
+} from '@/utils/campaign';
 
 type TabKey = 'emails' | 'social' | 'press' | 'timeline';
 
@@ -24,10 +33,6 @@ const TABS: { key: TabKey; label: string }[] = [
 ];
 
 const campaignService = new MockCampaignService();
-
-function cloneCampaign(campaign: Campaign): Campaign {
-  return JSON.parse(JSON.stringify(campaign)) as Campaign;
-}
 
 export default function CampaignScreen() {
   const router = useRouter();
@@ -48,7 +53,7 @@ export default function CampaignScreen() {
       return;
     }
     let active = true;
-    campaignService.generate(currentShow ?? FALLBACK_SHOW).then((result) => {
+    campaignService.generate(currentShow ?? DemoDataService.fallbackShow).then((result) => {
       if (active) {
         setCampaign(result);
       }
@@ -72,49 +77,25 @@ export default function CampaignScreen() {
   });
 
   const updateEmail = (index: number, field: 'subject' | 'body', value: string) =>
-    setCampaign((prev) =>
-      prev
-        ? {
-            ...prev,
-            emails: prev.emails.map((email, i) =>
-              i === index ? { ...email, [field]: value } : email,
-            ),
-          }
-        : prev,
-    );
+    setCampaign((prev) => (prev ? updateEmailField(prev, index, field, value) : prev));
 
   const updateSocial = (field: 'instagramPost' | 'facebookPost' | 'xPost', value: string) =>
-    setCampaign((prev) => (prev ? { ...prev, [field]: value } : prev));
+    setCampaign((prev) => (prev ? updateSocialField(prev, field, value) : prev));
 
   const updatePressRelease = (value: string) =>
-    setCampaign((prev) => (prev ? { ...prev, pressRelease: value } : prev));
+    setCampaign((prev) => (prev ? updatePressReleaseField(prev, value) : prev));
 
   const updateTimelineItem = (index: number, field: 'title' | 'detail', value: string) =>
-    setCampaign((prev) =>
-      prev
-        ? {
-            ...prev,
-            timelineItems: prev.timelineItems.map((item, i) =>
-              i === index ? { ...item, [field]: value } : item,
-            ),
-          }
-        : prev,
-    );
+    setCampaign((prev) => (prev ? updateTimelineItemField(prev, index, field, value) : prev));
 
-  const summary = useMemo(() => {
-    const values = Object.values(statuses);
-    const approved = values.filter((s) => s === 'approved').length;
-    const skipped = values.filter((s) => s === 'skipped').length;
-    return { approved, skipped };
-  }, [statuses]);
+  const summary = useMemo(() => summarizeStatuses(statuses), [statuses]);
 
   if (!campaign) {
     return (
-      <View style={styles.empty}>
-        <Text variant="body" color={colors.muted} style={styles.emptyText}>
-          No campaign yet. Generate one from a show to review it here.
-        </Text>
-      </View>
+      <EmptyState
+        title="Your campaign will appear here"
+        message="Tell GigLift about your next show and we'll write the emails, posts, and press release for you."
+      />
     );
   }
 
@@ -295,10 +276,10 @@ export default function CampaignScreen() {
           : null}
 
         <Button
-          label="View Timeline"
+          label="Continue to Previews"
           variant="primary"
-          style={styles.timelineButton}
-          onPress={() => router.push('/timeline')}
+          style={styles.continueButton}
+          onPress={() => router.push('/email-preview')}
         />
       </ScrollView>
     </View>
@@ -332,7 +313,7 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     gap: spacing.md,
   },
-  timelineButton: {
+  continueButton: {
     marginTop: spacing.sm,
   },
   emphasis: {
@@ -340,15 +321,5 @@ const styles = StyleSheet.create({
   },
   pressInput: {
     minHeight: 200,
-  },
-  empty: {
-    flex: 1,
-    backgroundColor: colors.background,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: spacing.xl,
-  },
-  emptyText: {
-    textAlign: 'center',
   },
 });

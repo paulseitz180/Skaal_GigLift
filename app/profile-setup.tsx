@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
+import Animated, { FadeIn } from 'react-native-reanimated';
 
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { SuccessCheck } from '@/components/ui/SuccessCheck';
 import { Text } from '@/components/ui/Text';
 import { colors } from '@/constants/colors';
 import { spacing } from '@/constants/spacing';
@@ -130,9 +132,12 @@ export default function ProfileSetupScreen() {
       />
 
       {status === 'success' ? (
-        <Text variant="body" color={colors.primary} style={styles.message}>
-          Profile saved.
-        </Text>
+        <Animated.View entering={FadeIn.duration(300)} style={styles.successBlock}>
+          <SuccessCheck />
+          <Text variant="body" color={colors.primary} style={styles.message}>
+            Profile saved.
+          </Text>
+        </Animated.View>
       ) : null}
 
       {status === 'error' ? (
@@ -159,7 +164,11 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
   },
   message: {
-    marginTop: spacing.md,
     textAlign: 'center',
+  },
+  successBlock: {
+    marginTop: spacing.lg,
+    alignItems: 'center',
+    gap: spacing.md,
   },
 });

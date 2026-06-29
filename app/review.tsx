@@ -1,80 +1,25 @@
 import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import Animated, { FadeIn, useReducedMotion } from 'react-native-reanimated';
 
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { SuccessCheck } from '@/components/ui/SuccessCheck';
 import { Text } from '@/components/ui/Text';
 import { colors } from '@/constants/colors';
 import { radius } from '@/constants/radius';
 import { spacing } from '@/constants/spacing';
 import { useShowStore } from '@/stores/showStore';
-import type { Show } from '@/types/show';
-
-type EditableField = {
-  key: string;
-  label: string;
-  value: string;
-  required: boolean;
-  multiline?: boolean;
-};
-
-/** Convert an edited string back into the typed Show field it represents. */
-function fieldToPartial(key: string, value: string): Partial<Show> {
-  switch (key) {
-    case 'ticketPrice': {
-      const parsed = Number(value);
-      return { ticketPrice: Number.isNaN(parsed) ? 0 : parsed };
-    }
-    case 'openingActs':
-      return {
-        openingActs: value
-          .split(',')
-          .map((act) => act.trim())
-          .filter((act) => act.length > 0),
-      };
-    case 'venue':
-      return { venue: value };
-    case 'city':
-      return { city: value };
-    case 'date':
-      return { date: value };
-    case 'time':
-      return { time: value };
-    case 'ticketLink':
-      return { ticketLink: value };
-    case 'genre':
-      return { genre: value };
-    case 'notes':
-      return { notes: value };
-    default:
-      return {};
-  }
-}
-
-function toFields(show: Show): EditableField[] {
-  return [
-    { key: 'venue', label: 'Venue', value: show.venue, required: true },
-    { key: 'city', label: 'City', value: show.city, required: false },
-    { key: 'date', label: 'Date', value: show.date, required: true },
-    { key: 'time', label: 'Time', value: show.time, required: true },
-    { key: 'ticketPrice', label: 'Ticket Price', value: String(show.ticketPrice), required: false },
-    { key: 'ticketLink', label: 'Ticket Link', value: show.ticketLink, required: false },
-    {
-      key: 'openingActs',
-      label: 'Opening Acts',
-      value: show.openingActs.join(', '),
-      required: false,
-    },
-    { key: 'genre', label: 'Genre', value: show.genre, required: false },
-    { key: 'notes', label: 'Notes', value: show.notes, required: false, multiline: true },
-  ];
-}
+import { fieldToPartial, toFields, type EditableField } from '@/utils/showFields';
 
 export default function ReviewScreen() {
   const router = useRouter();
   const currentShow = useShowStore((state) => state.currentShow);
   const updateShow = useShowStore((state) => state.updateShow);
+  const reducedMotion = useReducedMotion();
+
+  const [completing, setCompleting] = useState(false);
 
   const fields = useMemo(() => (currentShow ? toFields(currentShow) : []), [currentShow]);
 
@@ -82,44 +27,62 @@ export default function ReviewScreen() {
     updateShow(fieldToPartial(key, value));
   };
 
+  const handleLooksGood = () => {
+    // Brief "Review Complete" confirmation, then continue to campaign building.
+    setCompleting(true);
+    setTimeout(() => router.push('/campaign-loading'), reducedMotion ? 150 : 500);
+  };
+
   return (
-    <ScrollView
-      style={styles.screen}
-      contentContainerStyle={styles.content}
-      keyboardShouldPersistTaps="handled"
-    >
-      <Text variant="heading" style={styles.title}>
-        Your Show Details
-      </Text>
+    <View style={styles.screen}>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled"
+      >
+        <Text variant="heading" style={styles.title}>
+          Your Show Details
+        </Text>
 
-      {fields.length > 0 ? (
-        <Card>
-          {fields.map((field, index) => (
-            <FieldRow
-              key={field.key}
-              field={field}
-              isLast={index === fields.length - 1}
-              onSave={handleSaveField}
-            />
-          ))}
-        </Card>
-      ) : (
-        <Card>
-          <Text variant="body" color={colors.muted}>
-            No show details to review yet.
+        {fields.length > 0 ? (
+          <Card>
+            {fields.map((field, index) => (
+              <FieldRow
+                key={field.key}
+                field={field}
+                isLast={index === fields.length - 1}
+                onSave={handleSaveField}
+              />
+            ))}
+          </Card>
+        ) : (
+          <Card>
+            <Text variant="body" color={colors.muted}>
+              Tell GigLift about your show and these details will fill in automatically.
+            </Text>
+          </Card>
+        )}
+
+        <View style={styles.actions}>
+          <Button
+            label="Looks Good"
+            variant="primary"
+            disabled={completing}
+            onPress={handleLooksGood}
+          />
+          <Button label="Edit All" variant="ghost" />
+        </View>
+      </ScrollView>
+
+      {completing ? (
+        <Animated.View entering={FadeIn.duration(200)} style={styles.successOverlay}>
+          <SuccessCheck />
+          <Text variant="heading" style={styles.successText}>
+            Looks great!
           </Text>
-        </Card>
-      )}
-
-      <View style={styles.actions}>
-        <Button
-          label="Looks Good"
-          variant="primary"
-          onPress={() => router.push('/campaign-loading')}
-        />
-        <Button label="Edit All" variant="ghost" />
-      </View>
-    </ScrollView>
+        </Animated.View>
+      ) : null}
+    </View>
   );
 }
 
@@ -222,9 +185,26 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
+  scroll: {
+    flex: 1,
+  },
   content: {
     padding: spacing.lg,
     gap: spacing.lg,
+  },
+  successOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: colors.background,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.lg,
+  },
+  successText: {
+    textAlign: 'center',
   },
   title: {
     marginBottom: spacing.xs,

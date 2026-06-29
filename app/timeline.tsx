@@ -1,31 +1,23 @@
 import { useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { CalendarGlyph } from '@/components/ui/glyphs';
 import { Text } from '@/components/ui/Text';
 import { colors } from '@/constants/colors';
 import { radius } from '@/constants/radius';
 import { spacing } from '@/constants/spacing';
-import { FALLBACK_SHOW } from '@/mock/show';
-import {
-  TIMELINE_REFERENCE_DATE,
-  TIMELINE_STATUS_SEQUENCE,
-  type TimelineStatus,
-} from '@/mock/timeline';
 import { MockCampaignService } from '@/services/campaign/MockCampaignService';
+import { DemoDataService } from '@/services/demo/DemoDataService';
 import { useCampaignStore } from '@/stores/campaignStore';
 import { useShowStore } from '@/stores/showStore';
 import type { Campaign } from '@/types/campaign';
-
-type TimelineEntry = {
-  id: string;
-  title: string;
-  date: string;
-  detail: string;
-  status: TimelineStatus;
-};
+import { type TimelineStatus } from '@/types/timeline';
+import { buildTimelineEntries, type TimelineEntry } from '@/utils/timeline';
 
 const STATUS_LABEL: Record<TimelineStatus, string> = {
   scheduled: 'Scheduled',
@@ -41,15 +33,7 @@ const STATUS_COLOR: Record<TimelineStatus, string> = {
   completed: colors.primary,
 };
 
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
 const campaignService = new MockCampaignService();
-
-function formatMockDate(daysBeforeShow: number): string {
-  const date = new Date(TIMELINE_REFERENCE_DATE);
-  date.setDate(date.getDate() - daysBeforeShow);
-  return `${MONTHS[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
-}
 
 export default function TimelineScreen() {
   const router = useRouter();
@@ -64,7 +48,7 @@ export default function TimelineScreen() {
       return;
     }
     let active = true;
-    campaignService.generate(currentShow ?? FALLBACK_SHOW).then((result) => {
+    campaignService.generate(currentShow ?? DemoDataService.fallbackShow).then((result) => {
       if (active) {
         setCampaign(result);
       }
@@ -74,26 +58,18 @@ export default function TimelineScreen() {
     };
   }, [campaign, storeCampaign, currentShow]);
 
-  const entries = useMemo<TimelineEntry[]>(() => {
-    if (!campaign) {
-      return [];
-    }
-    return campaign.timelineItems.map((item, index) => ({
-      id: `timeline-${index}`,
-      title: item.title,
-      date: formatMockDate(item.daysBeforeShow),
-      detail: item.detail,
-      status: TIMELINE_STATUS_SEQUENCE[index % TIMELINE_STATUS_SEQUENCE.length] ?? 'scheduled',
-    }));
-  }, [campaign]);
+  const entries = useMemo<TimelineEntry[]>(
+    () => (campaign ? buildTimelineEntries(campaign) : []),
+    [campaign],
+  );
 
   if (entries.length === 0) {
     return (
-      <View style={styles.empty}>
-        <Text variant="body" color={colors.muted} style={styles.emptyText}>
-          No timeline yet. Generate a campaign to see your promotion schedule here.
-        </Text>
-      </View>
+      <EmptyState
+        icon={<CalendarGlyph />}
+        title="Your promo schedule will appear here"
+        message="We'll map out exactly what to post and send, and when, as soon as your campaign is ready."
+      />
     );
   }
 
@@ -101,36 +77,44 @@ export default function TimelineScreen() {
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         {entries.map((entry, index) => (
-          <Pressable
-            key={entry.id}
-            accessibilityRole="button"
-            onPress={() => setSelected(entry)}
-            style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
-          >
-            <View style={styles.rail}>
-              <View style={[styles.dot, { backgroundColor: STATUS_COLOR[entry.status] }]} />
-              {index < entries.length - 1 ? <View style={styles.line} /> : null}
-            </View>
-
-            <Card style={styles.itemCard}>
-              <View style={styles.itemHeader}>
-                <Text variant="body" style={styles.itemTitle}>
-                  {entry.title}
-                </Text>
-                <StatusBadge status={entry.status} />
+          <Animated.View key={entry.id} entering={FadeInDown.delay(index * 60).duration(300)}>
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => setSelected(entry)}
+              style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
+            >
+              <View style={styles.rail}>
+                <View style={[styles.dot, { backgroundColor: STATUS_COLOR[entry.status] }]} />
+                {index < entries.length - 1 ? <View style={styles.line} /> : null}
               </View>
-              <Text variant="caption" color={colors.muted}>
-                {entry.date}
-              </Text>
-            </Card>
-          </Pressable>
+
+              <Card style={styles.itemCard}>
+                <View style={styles.itemHeader}>
+                  <Text variant="body" style={styles.itemTitle}>
+                    {entry.title}
+                  </Text>
+                  <StatusBadge status={entry.status} />
+                </View>
+                <Text variant="caption" color={colors.muted}>
+                  {entry.date}
+                </Text>
+              </Card>
+            </Pressable>
+          </Animated.View>
         ))}
 
         <Button
           label="Return Home"
           variant="primary"
           style={styles.returnHomeButton}
-          onPress={() => router.replace('/')}
+          onPress={() => {
+            // Unwind the whole demo stack back to Home so there's no deep back trail.
+            if (router.canDismiss()) {
+              router.dismissAll();
+            } else {
+              router.replace('/');
+            }
+          }}
         />
       </ScrollView>
 
@@ -232,7 +216,7 @@ const styles = StyleSheet.create({
   },
   modalBackdrop: {
     flex: 1,
-    backgroundColor: 'rgba(17, 24, 39, 0.5)',
+    backgroundColor: colors.scrim,
     justifyContent: 'flex-end',
     padding: spacing.lg,
   },
@@ -244,15 +228,5 @@ const styles = StyleSheet.create({
   },
   modalDetail: {
     lineHeight: 22,
-  },
-  empty: {
-    flex: 1,
-    backgroundColor: colors.background,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: spacing.xl,
-  },
-  emptyText: {
-    textAlign: 'center',
   },
 });

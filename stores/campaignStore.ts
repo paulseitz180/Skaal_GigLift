@@ -7,12 +7,9 @@ type CampaignState = {
   campaign: Campaign | null;
   /** Replace the current campaign wholesale (e.g., after generation). */
   setCampaign: (campaign: Campaign) => void;
-  /** Clear the current campaign. */
-  clearCampaign: () => void;
 };
 
 export const useCampaignStore = create<CampaignState>((set) => ({
   campaign: null,
   setCampaign: (campaign) => set({ campaign }),
-  clearCampaign: () => set({ campaign: null }),
 }));

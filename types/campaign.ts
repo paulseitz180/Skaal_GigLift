@@ -25,3 +25,6 @@ export type Campaign = {
   pressRelease: string;
   timelineItems: CampaignTimelineItem[];
 };
+
+/** Per-item review state on the Campaign Review screen. */
+export type ItemStatus = 'pending' | 'approved' | 'skipped';

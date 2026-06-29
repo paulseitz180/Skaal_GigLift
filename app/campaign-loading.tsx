@@ -1,13 +1,15 @@
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 
 import { Button } from '@/components/ui/Button';
+import { SuccessCheck } from '@/components/ui/SuccessCheck';
 import { Text } from '@/components/ui/Text';
 import { colors } from '@/constants/colors';
 import { spacing } from '@/constants/spacing';
-import { FALLBACK_SHOW } from '@/mock/show';
 import { MockCampaignService } from '@/services/campaign/MockCampaignService';
+import { DemoDataService } from '@/services/demo/DemoDataService';
 import type { CampaignService } from '@/services/campaign/CampaignService';
 import { useCampaignStore } from '@/stores/campaignStore';
 import { useShowStore } from '@/stores/showStore';
@@ -53,7 +55,7 @@ export default function CampaignLoadingScreen() {
 
   useEffect(() => {
     let active = true;
-    campaignService.generate(currentShow ?? FALLBACK_SHOW).then((result) => {
+    campaignService.generate(currentShow ?? DemoDataService.fallbackShow).then((result) => {
       if (active) {
         setCampaign(result);
         setStoreCampaign(result);
@@ -71,17 +73,19 @@ export default function CampaignLoadingScreen() {
       {isReady ? (
         <>
           <View style={styles.readyBlock}>
-            <View style={styles.successCircle}>
-              <View style={styles.check} />
-            </View>
-            <Text variant="heading">Campaign Ready</Text>
+            <SuccessCheck />
+            <Animated.View entering={FadeInDown.delay(200).duration(400)}>
+              <Text variant="heading">Campaign Ready</Text>
+            </Animated.View>
           </View>
 
-          <Button
-            label="Review Campaign"
-            variant="primary"
-            onPress={() => router.replace('/campaign')}
-          />
+          <Animated.View entering={FadeInUp.delay(350).duration(400)}>
+            <Button
+              label="Review Campaign"
+              variant="primary"
+              onPress={() => router.replace('/campaign')}
+            />
+          </Animated.View>
         </>
       ) : (
         <View style={styles.loadingBlock}>
@@ -114,22 +118,5 @@ const styles = StyleSheet.create({
   readyBlock: {
     alignItems: 'center',
     gap: spacing.md,
-  },
-  successCircle: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  check: {
-    width: 16,
-    height: 28,
-    marginBottom: 4,
-    borderRightWidth: 3,
-    borderBottomWidth: 3,
-    borderColor: colors.onPrimary,
-    transform: [{ rotate: '45deg' }],
   },
 });

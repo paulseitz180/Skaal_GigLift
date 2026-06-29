@@ -5,6 +5,7 @@
 export const colors = {
   // Brand
   primary: '#6B21A8',
+  primarySoft: '#F3E8FF',
   accent: '#EC4899',
 
   // Surfaces
@@ -25,6 +26,15 @@ export const colors = {
   // Status accents
   info: '#2563EB',
   success: '#16A34A',
+
+  // Overlays / immersive surfaces
+  scrim: 'rgba(17, 24, 39, 0.5)',
+  recordingBackground: '#0B0B0F',
+
+  // Social platform brand accents
+  instagram: '#E1306C',
+  facebook: '#1877F2',
+  x: '#111827',
 } as const;
 
 export type ColorToken = keyof typeof colors;
